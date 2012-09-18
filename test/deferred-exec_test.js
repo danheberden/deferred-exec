@@ -26,12 +26,13 @@ exports['general'] = {
     done();
   },
   'exec stdout' : function( test ) {
-    test.expect(3);
+    test.expect(4);
     deferred_exec( 'echo "hi"' )
       .done( function( stdout, stderr, command ) {
         test.ok( true, '.done should fire' );
         test.equal( command, 'echo "hi"', 'original command should match sent copy' );
         test.equal( stdout, 'hi\n', 'result should match actual command result' );
+        test.equal( stderr, '', 'stderr should be empty' );
         test.done();
       })
       .fail( function() {
@@ -40,12 +41,13 @@ exports['general'] = {
       });
   },
   'exec stderr': function( test ) {
-    test.expect(3);
+    test.expect(4);
     deferred_exec( 'echo "hi" 1>&2' )
       .done( function( stdout, stderr, command ) {
         test.ok( true, '.done should fire' );
         test.equal( command, 'echo "hi" 1>&2', 'original command should match sent copy' );
         test.equal( stderr, 'hi\n', 'stderr should match echoed text' );
+        test.equal( stdout, '', 'stdout should be empty' );
         test.done();
       })
       .fail( function() {
@@ -65,6 +67,20 @@ exports['general'] = {
         test.ok( false, '.done should not have fired' );
         test.done();
       });
+  },
+  'file works': function( test ) {
+    test.expect(4);
+    deferred_exec.file( 'test/test.sh' )
+      .done( function( stdout, stderr, fileName ) {
+        test.ok( true, '.done should fire' );
+        test.equal( stdout, 'bash script\n', 'stdout should match file output' );
+        test.equal( stderr, '', 'there should be no stderr content' );
+        test.equal( fileName, 'test/test.sh', 'fileName should match original file' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
   }
-
 };
