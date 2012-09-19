@@ -31,7 +31,7 @@ exports['general'] = {
       .done( function( stdout, stderr, command ) {
         test.ok( true, '.done should fire' );
         test.equal( command, 'echo "hi"', 'original command should match sent copy' );
-        test.equal( stdout, 'hi\n', 'result should match actual command result' );
+        test.equal( stdout, 'hi', 'result should match actual command result' );
         test.equal( stderr, '', 'stderr should be empty' );
         test.done();
       })
@@ -46,7 +46,7 @@ exports['general'] = {
       .done( function( stdout, stderr, command ) {
         test.ok( true, '.done should fire' );
         test.equal( command, 'echo "hi" 1>&2', 'original command should match sent copy' );
-        test.equal( stderr, 'hi\n', 'stderr should match echoed text' );
+        test.equal( stderr, 'hi', 'stderr should match echoed text' );
         test.equal( stdout, '', 'stdout should be empty' );
         test.done();
       })
@@ -55,7 +55,7 @@ exports['general'] = {
         test.done();
       });
   },
-  'errors work': function( test ) {
+  'exec errors work': function( test ) {
     test.expect(2);
     deferred_exec( 'someprogramthatdoesntexistunlessyoureajerkandcreatedthisjusttofailthetest' )
       .fail( function( error ) {
@@ -68,14 +68,13 @@ exports['general'] = {
         test.done();
       });
   },
-  'file works': function( test ) {
-    test.expect(4);
-    deferred_exec.file( 'test/test.sh' )
-      .done( function( stdout, stderr, fileName ) {
+  'string cleanup works': function( test ) {
+    test.expect(3);
+    deferred_exec( 'echo "hi"', { trim: false } )
+      .done( function( stdout, stderr, command ) {
         test.ok( true, '.done should fire' );
-        test.equal( stdout, 'bash script\n', 'stdout should match file output' );
-        test.equal( stderr, '', 'there should be no stderr content' );
-        test.equal( fileName, 'test/test.sh', 'fileName should match original file' );
+        test.equal( stdout, 'hi\n', 'output should have trialing newline' );
+        test.equal( stderr, '', 'stderr should be empty' );
         test.done();
       })
       .fail( function() {
@@ -84,3 +83,54 @@ exports['general'] = {
       });
   }
 };
+
+exports['file'] = {
+  setUp: function( done ) {
+    done();
+  },
+  'file stdout': function( test ) {
+    test.expect(4);
+    deferred_exec.file( 'test/stdout_test.sh' )
+      .done( function( stdout, stderr, fileName ) {
+        test.ok( true, '.done should fire' );
+        test.equal( stdout, 'bash script', 'stdout should match file output' );
+        test.equal( stderr, '', 'there should be no stderr content' );
+        test.equal( fileName, 'test/stdout_test.sh', 'fileName should match original file' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
+  },
+  'file stderr': function( test ) {
+    test.expect(4);
+    deferred_exec.file( 'test/stderr_test.sh' )
+      .done( function( stdout, stderr, fileName ) {
+        test.ok( true, '.done should fire' );
+        test.equal( stdout, '', 'stdout should be empty' );
+        test.equal( stderr, 'bash script', 'stderr should match script output' );
+        test.equal( fileName, 'test/stderr_test.sh', 'fileName should match original file' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
+  },
+  'file errors': function( test ) {
+    test.expect(2);
+    deferred_exec.file( 'test/nothere.sh' )
+      .done( function( stdout, stderr, fileName ) {
+        test.ok( false, '.done should not fire' );
+        test.done();
+      })
+      .fail( function( error ) {
+        test.ok( true, '.fail should have fired' );
+        test.equal( error.code, 127, 'should have failed with code 127' );
+        test.done();
+      });
+  }
+};
+
+// todo: write stream unit tests
