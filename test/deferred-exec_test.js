@@ -134,3 +134,114 @@ exports['file'] = {
 };
 
 // todo: write stream unit tests
+exports['spawn'] = {
+  setUp: function( done ) {
+    done();
+  },
+  'spawn stdout': function( test ) {
+    test.expect(4);
+    deferred_exec.spawn( 'echo', [ 'hi' ] )
+      .done( function( stdout, stderr, command ) {
+        test.ok( true, '.done should fire' );
+        test.equal( stdout, 'hi', 'stdout output should match command output' );
+        test.equal( stderr, '', 'stderr should be empty' );
+        test.equal( command, 'echo', 'command should match' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
+  },
+  'spawn stderr': function( test ) {
+    test.expect(3);
+    deferred_exec.spawn( 'test/stderr_test.sh' )
+      .done( function( stdout, stderr, command ) {
+        test.ok( true, '.done should fire' );
+        test.equal( stdout, '', 'stdout should be empty' );
+        test.equal( stderr, 'bash script', 'stderr should match stderr output' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
+  },
+  'spawn error': function( test ) {
+    test.expect(2);
+    deferred_exec.spawn( 'anothercallthatshouldntwork' )
+      .done( function() {
+        test.ok( false, '.done should not have fired' );
+        test.done();
+      })
+      .fail( function( error ) {
+        test.ok( true, '.fail should have fired' );
+        test.equal( error.code, 127, 'should have exited with code 127' );
+        test.done();
+      });
+  },
+  'spawn stdout progress': function( test ) {
+    test.expect(3);
+    var progress_stdout = "";
+    var progress_stderr = "";
+
+    deferred_exec.spawn( 'test/stdout_big_test.sh', [], { trim: false } )
+      .progress( function( stdout, stderr ) {
+        progress_stdout += stdout;
+        progress_stderr += stderr;
+      })
+      .done( function( stdout, stderr ) {
+        test.ok( true, '.done should have fired' );
+        test.equal( stdout, progress_stdout, 'accumulated stdout should match total data' );
+        test.equal( stderr, progress_stderr, 'accumulated stderr shuold match total' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
+  },
+  'spawn stderr progress': function( test ) {
+    test.expect(3);
+    var progress_stdout = "";
+    var progress_stderr = "";
+
+    deferred_exec.spawn( 'test/stderr_big_test.sh', [], { trim: false } )
+      .progress( function( stdout, stderr ) {
+        progress_stdout += stdout;
+        progress_stderr += stderr;
+      })
+      .done( function( stdout, stderr ) {
+        test.ok( true, '.done should have fired' );
+        test.equal( stdout, progress_stdout, 'accumulated stdout should match total data' );
+        test.equal( stderr, progress_stderr, 'accumulated stderr shuold match total' );
+        test.done();
+      })
+      .fail( function() {
+        test.ok( false, '.fail should not have fired' );
+        test.done();
+      });
+  },
+  'spawn error progress': function( test ) {
+    test.expect(4);
+    var progress_stdout = "";
+    var progress_stderr = "";
+
+    deferred_exec.spawn( 'test/stdout_big_error.sh', [], { trim: false } )
+      .progress( function( stdout, stderr ) {
+        progress_stdout += stdout;
+        progress_stderr += stderr;
+      })
+      .done( function( stdout, stderr ) {
+        test.ok( false, '.done should not have fired' );
+        test.done();
+      })
+      .fail( function( error ) {
+        test.ok( true, '.fail should have fired' );
+        test.equal( error.code, 127, 'should have thrown a 127' );
+        test.ok( !!progress_stdout, 'stdout should have still accumulated' );
+        test.ok( !progress_stderr, 'stderr, on the other hand, should not have' );
+        test.done();
+      });
+  }
+};
