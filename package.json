@@ -1,7 +1,7 @@
 {
   "name": "deferred-exec",
   "description": "Deferred based tool to run exec commands",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage": "https://github.com/danheberden/deferred-exec",
   "author": {
     "name": "Dan Heberden",

@@ -2,7 +2,7 @@
 
 Deferred based tool to run exec commands. Lets you use exec, execFile and spawn in a sane way.
 
-Version: 0.3.0
+Version: 0.3.1
 
 ## Installing
 
